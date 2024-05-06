@@ -1,0 +1,182 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    <link href="https://cdn.datatables.net/2.0.3/css/dataTables.bootstrap5.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        .addProduct button {
+            text-decoration: none;
+            text-align: center;
+            background-color: darkred;
+            color: white;
+            font-size: 1rem;
+            padding: 5px 33px;
+            border-radius: 12px;
+            transition: transform 2s ease;
+        }
+
+        button:hover {
+            background-color: wine;
+        }
+
+        th, td {
+            min-width: 150px;
+            max-width: 200px; /* Adjust max width as needed */
+            text-align: center; /* Center text horizontally */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .elipses a {
+            display: inline-block;
+            max-width: 150px; /* Adjust max width as needed */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <div class="addProduct">
+            <button type="button" class=" " data-toggle="modal" data-target="#exampleModal" class="m-3">
+                <i class="fa-solid fa-plus"> </i> Add Product
+            </button>    
+        </div>
+
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Three input fields -->
+                        <div class="form-group">
+                            <label for="input1">Product Name</label>
+                            <input type="text" class="form-control" id="title">
+                        </div>
+                        <div class="form-group">
+                            <label for="input2">Amazon URL</label>
+                            <input type="text" class="form-control" id="amazon">
+                        </div>
+                        <div class="form-group">
+                            <label for="input3">Noon URL</label>
+                            <input type="text" class="form-control" id="noon">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="savebtn" onclick="add();">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+           
+
+            <table id="PoductTable" class="table">
+                <thead>
+                <th>
+                    Product Id
+                </th>
+                <th>
+                    Product Name
+                </th>
+                <th>
+                Noon Price
+                </th>
+                <th>
+                Noon URL
+                </th>
+                <th>
+                Amazon Price
+                </th>
+                <th>
+                Amazon URL
+                </th>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+	<script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.bootstrap5.js"></script>
+    <script src="https://kit.fontawesome.com/d3bc0f0f7a.js" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        let tableRows = document.querySelector("#PoductTable tbody tr");
+
+        window.addEventListener('load', GetAllProduct);
+        function GetAllProduct() {
+            $.ajax({
+                url: 'http://price-comparison.runasp.net/api/products',
+                type: 'GET',
+                success: function (data) {
+                    console.log(data);
+                    var html = '';
+                    for (var i = 0; i < data.length; i++) {
+                        html += '<tr>';
+                        html += '<td>' + data[i].id + '</td>';
+                        html += '<td>' + data[i].title + '</td>';
+                        html += '<td>' + data[i].noonPrice + '</td>';
+                        html += '<td class="elipses">' + '<a href="' + data[i].noonUrl + '">' + data[i].noonUrl + '</a>' + '</td>';
+                        html += '<td>' + data[i].amazonPrice + '</td>';
+                        html += '<td class="elipses">' + '<a href="' + data[i].amazonUrl + '">' + data[i].amazonUrl + '</a>' + '</td>';
+                        html += '</tr>';
+                    }
+                    $('#PoductTable tbody').html(html);
+                    $('#PoductTable').DataTable();
+                }
+            });
+        }
+
+        $('#savebtn').click(function () {
+            $('#1').modal('hide');
+        });
+
+        function add() {
+            
+            var product = {
+                title: $('#title').val(),
+                amazonLink: $('#amazon').val(),
+                noonLink: $('#noon').val(),
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: 'http://price-comparison.runasp.net/api/products',
+                contentType: 'application/json',
+                data: JSON.stringify(product),
+                success: function (response) {
+                    console.log('product added successfully:', response);
+                    $('#title').val('');
+                    $('#amazon').val('');
+                    $('#noon').val('');
+                },
+                error: function (xhr, status, error) {
+                    console.log(data);
+                    console.error('Error adding product:', xhr.responseText);
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
